@@ -3,6 +3,7 @@ package com.rakshan.store.Controllers;
 
 import com.rakshan.store.dtos.UserDto;
 import com.rakshan.store.entities.User;
+import com.rakshan.store.mappers.UserMapper;
 import com.rakshan.store.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,13 @@ import java.util.List;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @GetMapping()
     public Iterable<UserDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> new UserDto(user.getId(), user.getName(), user.getEmail()))
+                .map(user -> userMapper.toDto(user))
                 .toList();
     }
 
@@ -36,7 +38,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
 
-        var userDto = new UserDto(user.getId(), user.getName(), user.getEmail());
-        return ResponseEntity.ok(userDto);
+
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 }
