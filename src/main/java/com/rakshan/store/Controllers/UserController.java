@@ -1,14 +1,15 @@
 package com.rakshan.store.Controllers;
 
 
-import com.rakshan.store.dtos.RegisterUserRequest;
-import com.rakshan.store.dtos.UpdateUserRequest;
-import com.rakshan.store.dtos.UserDto;
+import com.rakshan.store.dtos.*;
+import com.rakshan.store.mappers.ProductMapper;
 import com.rakshan.store.mappers.UserMapper;
+import com.rakshan.store.repositories.ProductRepository;
 import com.rakshan.store.repositories.UserRepository;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -79,4 +80,38 @@ public class UserController {
 
         return ResponseEntity.ok(userMapper.toDto(user));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id){
+        var user = userRepository.findById(id).orElse(null);
+        if(user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.delete(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable Long id,
+            @RequestBody ChangePasswordRequest request) {
+
+        var user = userRepository.findById(id).orElse(null);
+        if(user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if(!user.getPassword().equals(request.getOldPassword())){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
